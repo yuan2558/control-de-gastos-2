@@ -4,139 +4,198 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Gastos Personalizado</title>
+    <!-- Importar fuente moderna Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --success: #16a34a;
+            --danger: #dc2626;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+
+        .container {
             width: 100%;
-            max-width: 450px;
+            max-width: 440px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        h2, h3 {
+            color: var(--text-main);
+            margin-top: 0;
+            font-weight: 700;
+            font-size: 1.25rem;
+            text-align: center;
             margin-bottom: 20px;
         }
-        h2, h3 {
-            text-align: center;
-            color: #333;
-            margin-top: 0;
-        }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
+
         label {
             display: block;
-            margin-bottom: 5px;
-            color: #666;
-            font-weight: bold;
-            font-size: 14px;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.875rem;
         }
+
         select, input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
             box-sizing: border-box;
-            margin-bottom: 5px;
+            background-color: #fff;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
         }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
         .custom-input {
             display: none;
-            margin-top: 5px;
+            margin-top: 8px;
+            animation: fadeIn 0.3s ease;
         }
+
         button {
             width: 100%;
-            background-color: #4CAF50;
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 12px;
-            border-radius: 6px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 1rem;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
             margin-top: 10px;
+            transition: background-color 0.2s ease, transform 0.1s active;
         }
+
         button:hover {
-            background-color: #45a049;
+            background-color: var(--primary-hover);
         }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
         #mensaje {
             text-align: center;
-            margin-top: 15px;
-            font-weight: bold;
+            margin-top: 12px;
+            font-weight: 600;
+            font-size: 0.875rem;
         }
+
         ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
+
         li {
-            background: #f9f9f9;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            background: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            font-size: 0.9rem;
         }
-        .Ingreso { color: #2e7d32; font-weight: bold; }
-        .Egreso { color: #c62828; font-weight: bold; }
+
+        .monto-ingreso { color: var(--success); font-weight: 700; }
+        .monto-egreso { color: var(--danger); font-weight: 700; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Control de Gastos</h2>
-        <form id="gastoForm">
-            <div class="form-group">
-                <label for="tipo">Tipo de Movimiento:</label>
-                <select id="tipo">
-                    <option value="Egreso">Egreso (Gasto)</option>
-                    <option value="Ingreso">Ingreso</option>
-                </select>
-            </div>
+    <div class="container">
+        <div class="card">
+            <h2>Control de Gastos</h2>
+            <form id="gastoForm">
+                <div class="form-group">
+                    <label for="tipo">Tipo de Movimiento</label>
+                    <select id="tipo">
+                        <option value="Egreso">Egreso (Gasto)</option>
+                        <option value="Ingreso">Ingreso</option>
+                    </select>
+                </div>
 
-            <div class="form-group">
-                <label for="categoria">Categoría:</label>
-                <select id="categoriaSelect" onchange="verificarNuevaCategoria(this)">
-                    <!-- Se llena con JavaScript -->
-                </select>
-                <input type="text" id="nuevaCategoriaInput" class="custom-input" placeholder="Escribe nueva categoría...">
-            </div>
+                <div class="form-group">
+                    <label for="categoria">Categoría</label>
+                    <select id="categoriaSelect" onchange="verificarNuevaCategoria(this)">
+                        <!-- Dinámico -->
+                    </select>
+                    <input type="text" id="nuevaCategoriaInput" class="custom-input" placeholder="Nombre de la nueva categoría...">
+                </div>
 
-            <div class="form-group">
-                <label for="monto">Monto:</label>
-                <input type="text" id="monto" placeholder="Ej. 5.500" required oninput="formatearMonto(this)">
-            </div>
+                <div class="form-group">
+                    <label for="monto">Monto</label>
+                    <input type="text" id="monto" placeholder="Ej. 5.500" required oninput="formatearMonto(this)">
+                </div>
 
-            <div class="form-group">
-                <label for="fuente">Fuente de Fondos:</label>
-                <select id="fuenteSelect" onchange="verificarNuevaFuente(this)">
-                    <!-- Se llena con JavaScript -->
-                </select>
-                <input type="text" id="nuevaFuenteInput" class="custom-input" placeholder="Escribe nueva fuente...">
-            </div>
+                <div class="form-group">
+                    <label for="fuente">Fuente de Fondos</label>
+                    <select id="fuenteSelect" onchange="verificarNuevaFuente(this)">
+                        <!-- Dinámico -->
+                    </select>
+                    <input type="text" id="nuevaFuenteInput" class="custom-input" placeholder="Nombre de la nueva fuente...">
+                </div>
 
-            <button type="submit" id="btnEnviar">Guardar y Sincronizar</button>
-            <div id="mensaje"></div>
-        </form>
-    </div>
+                <button type="submit" id="btnEnviar">Guardar y Sincronizar</button>
+                <div id="mensaje"></div>
+            </form>
+        </div>
 
-    <div class="card">
-        <h3>Movimientos Recientes (Últimas 24h)</h3>
-        <ul id="listaMovimientos">
-            <p style="text-align: center; color: #888; font-size: 14px;">No hay movimientos recientes.</p>
-        </ul>
+        <div class="card">
+            <h3>Movimientos Recientes (24h)</h3>
+            <ul id="listaMovimientos">
+                <p style="text-align: center; color: var(--text-muted); font-size: 0.875rem; margin: 10px 0;">No hay movimientos recientes.</p>
+            </ul>
+        </div>
     </div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyeqA7ZN8GLFh3BP-sda22EhIwet5FQoq59mcL_rsD6feuC9L0gDYpSI-iYqEuBoplP/exec";
 
-        // Listas iniciales o recuperadas de la memoria del navegador (localStorage)
         let categorias = JSON.parse(localStorage.getItem('mis_categorias')) || ['Comida', 'Gastos Hormiga', 'Transporte', 'Entretenimiento'];
         let fuentes = JSON.parse(localStorage.getItem('mis_fuentes')) || ['Efectivo', 'Tarjeta de Crédito', 'Transferencia'];
 
@@ -146,14 +205,14 @@
             categorias.forEach(cat => {
                 catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
             });
-            catSelect.innerHTML += `<option value="ADD_NEW" style="color: blue; font-weight: bold;">+ Agregar nueva categoría...</option>`;
+            catSelect.innerHTML += `<option value="ADD_NEW" style="color: var(--primary); font-weight: 600;">+ Agregar nueva categoría...</option>`;
 
             const fuenteSelect = document.getElementById('fuenteSelect');
             fuenteSelect.innerHTML = '';
             fuentes.forEach(f => {
                 fuenteSelect.innerHTML += `<option value="${f}">${f}</option>`;
             });
-            fuenteSelect.innerHTML += `<option value="ADD_NEW" style="color: blue; font-weight: bold;">+ Agregar nueva fuente...</option>`;
+            fuenteSelect.innerHTML += `<option value="ADD_NEW" style="color: var(--primary); font-weight: 600;">+ Agregar nueva fuente...</option>`;
         }
 
         function verificarNuevaCategoria(select) {
@@ -182,7 +241,6 @@
             }
         }
 
-        // Formatear puntos de miles mientras escribes
         function formatearMonto(input) {
             let valor = input.value.replace(/\D/g, '');
             if (valor !== '') {
@@ -191,26 +249,29 @@
             input.value = valor;
         }
 
-        // Cargar y limpiar movimientos de más de 24 horas en la pantalla
         function cargarMovimientosLocales() {
             const ul = document.getElementById('listaMovimientos');
             let movimientos = JSON.parse(localStorage.getItem('historial_24h')) || [];
             
             const ahora = new Date().getTime();
-            // Filtrar solo los de menos de 24 horas (24 * 60 * 60 * 1000 ms)
             movimientos = movimientos.filter(m => (ahora - m.tiempo) < 86400000);
             localStorage.setItem('historial_24h', JSON.stringify(movimientos));
 
             if (movimientos.length === 0) {
-                ul.innerHTML = '<p style="text-align: center; color: #888; font-size: 14px;">No hay movimientos recientes.</p>';
+                ul.innerHTML = '<p style="text-align: center; color: var(--text-muted); font-size: 0.875rem; margin: 10px 0;">No hay movimientos recientes.</p>';
                 return;
             }
 
             ul.innerHTML = '';
             movimientos.forEach(m => {
+                const claseMonto = m.tipo === 'Ingreso' ? 'monto-ingreso' : 'monto-egreso';
+                const signo = m.tipo === 'Ingreso' ? '+' : '-';
                 ul.innerHTML += `<li>
-                    <span><b>${m.categoria}</b> (${m.fuente})<br><small>${m.fechaStr}</small></span>
-                    <span class="${m.tipo}">${m.tipo === 'Ingreso' ? '+' : '-'}$ ${m.montoFormateado}</span>
+                    <div>
+                        <strong style="color: var(--text-main);">${m.categoria}</strong><br>
+                        <small style="color: var(--text-muted);">${m.fuente} • ${m.fechaStr}</small>
+                    </div>
+                    <span class="${claseMonto}">${signo}$ ${m.montoFormateado}</span>
                 </li>`;
             });
         }
@@ -245,7 +306,7 @@
 
             btnEnviar.disabled = true;
             btnEnviar.textContent = "Guardando...";
-            mensaje.style.color = "blue";
+            mensaje.style.color = "var(--primary)";
             mensaje.textContent = "Sincronizando...";
 
             const ahora = new Date();
@@ -265,7 +326,6 @@
                     body: JSON.stringify(datos)
                 });
 
-                // Guardar en el historial local de 24h para la pantalla
                 let movimientos = JSON.parse(localStorage.getItem('historial_24h')) || [];
                 movimientos.unshift({
                     tipo: tipoVal,
@@ -277,14 +337,14 @@
                 });
                 localStorage.setItem('historial_24h', JSON.stringify(movimientos));
 
-                mensaje.style.color = "green";
+                mensaje.style.color = "var(--success)";
                 mensaje.textContent = "¡Registrado con éxito!";
                 this.reset();
                 inicializarSelects();
                 cargarMovimientosLocales();
             } catch (error) {
                 console.error("Error:", error);
-                mensaje.style.color = "red";
+                mensaje.style.color = "var(--danger)";
                 mensaje.textContent = "Error al guardar.";
             } finally {
                 btnEnviar.disabled = false;
@@ -293,7 +353,6 @@
             }
         });
 
-        // Inicializar al cargar la página
         inicializarSelects();
         cargarMovimientosLocales();
     </script>
