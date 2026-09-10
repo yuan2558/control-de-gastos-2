@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Gastos y Gastos Hormiga</title>
+    <title>Control de Gastos Personalizado</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,9 +11,8 @@
             margin: 0;
             padding: 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
         }
         .card {
             background: white;
@@ -21,12 +20,13 @@
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
+            margin-bottom: 20px;
         }
-        h2 {
+        h2, h3 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
+            margin-top: 0;
         }
         .form-group {
             margin-bottom: 15px;
@@ -45,6 +45,11 @@
             border-radius: 6px;
             font-size: 16px;
             box-sizing: border-box;
+            margin-bottom: 5px;
+        }
+        .custom-input {
+            display: none;
+            margin-top: 5px;
         }
         button {
             width: 100%;
@@ -66,6 +71,20 @@
             margin-top: 15px;
             font-weight: bold;
         }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #f9f9f9;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .Ingreso { color: #2e7d32; font-weight: bold; }
+        .Egreso { color: #c62828; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -83,29 +102,23 @@
 
             <div class="form-group">
                 <label for="categoria">Categoría:</label>
-                <select id="categoria">
-                    <option value="Hormiga">Gastos Hormiga (Café, snacks, etc.)</option>
-                    <option value="Comida">Comida / Supermercado</option>
-                    <option value="Transporte">Transporte</option>
-                    <option value="Entretenimiento">Entretenimiento</option>
-                    <option value="Salario">Salario / Ingresos</option>
-                    <option value="Otros">Otros</option>
+                <select id="categoriaSelect" onchange="verificarNuevaCategoria(this)">
+                    <!-- Se llena con JavaScript -->
                 </select>
+                <input type="text" id="nuevaCategoriaInput" class="custom-input" placeholder="Escribe nueva categoría...">
             </div>
 
             <div class="form-group">
                 <label for="monto">Monto:</label>
-                <input type="number" id="monto" step="0.01" placeholder="Ej. 5.50" required>
+                <input type="text" id="monto" placeholder="Ej. 5.500" required oninput="formatearMonto(this)">
             </div>
 
             <div class="form-group">
                 <label for="fuente">Fuente de Fondos:</label>
-                <select id="fuente">
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Tarjeta de crédito">Tarjeta de crédito</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Otra">Otra</option>
+                <select id="fuenteSelect" onchange="verificarNuevaFuente(this)">
+                    <!-- Se llena con JavaScript -->
                 </select>
+                <input type="text" id="nuevaFuenteInput" class="custom-input" placeholder="Escribe nueva fuente...">
             </div>
 
             <button type="submit" id="btnEnviar">Guardar y Sincronizar</button>
@@ -113,53 +126,176 @@
         </form>
     </div>
 
+    <div class="card">
+        <h3>Movimientos Recientes (Últimas 24h)</h3>
+        <ul id="listaMovimientos">
+            <p style="text-align: center; color: #888; font-size: 14px;">No hay movimientos recientes.</p>
+        </ul>
+    </div>
+
     <script>
-        // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT ENTRE LAS COMILLAS
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyeqA7ZN8GLFh3BP-sda22EhIwet5FQoq59mcL_rsD6feuC9L0gDYpSI-iYqEuBoplP/exec";
 
-        const form = document.getElementById('gastoForm');
-        const mensaje = document.getElementById('mensaje');
-        const btnEnviar = document.getElementById('btnEnviar');
+        // Listas iniciales o recuperadas de la memoria del navegador (localStorage)
+        let categorias = JSON.parse(localStorage.getItem('mis_categorias')) || ['Comida', 'Gastos Hormiga', 'Transporte', 'Entretenimiento'];
+        let fuentes = JSON.parse(localStorage.getItem('mis_fuentes')) || ['Efectivo', 'Tarjeta de Crédito', 'Transferencia'];
 
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
+        function inicializarSelects() {
+            const catSelect = document.getElementById('categoriaSelect');
+            catSelect.innerHTML = '';
+            categorias.forEach(cat => {
+                catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            catSelect.innerHTML += `<option value="ADD_NEW" style="color: blue; font-weight: bold;">+ Agregar nueva categoría...</option>`;
+
+            const fuenteSelect = document.getElementById('fuenteSelect');
+            fuenteSelect.innerHTML = '';
+            fuentes.forEach(f => {
+                fuenteSelect.innerHTML += `<option value="${f}">${f}</option>`;
+            });
+            fuenteSelect.innerHTML += `<option value="ADD_NEW" style="color: blue; font-weight: bold;">+ Agregar nueva fuente...</option>`;
+        }
+
+        function verificarNuevaCategoria(select) {
+            const input = document.getElementById('nuevaCategoriaInput');
+            if (select.value === 'ADD_NEW') {
+                input.style.display = 'block';
+                input.required = true;
+                input.focus();
+            } else {
+                input.style.display = 'none';
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        function verificarNuevaFuente(select) {
+            const input = document.getElementById('nuevaFuenteInput');
+            if (select.value === 'ADD_NEW') {
+                input.style.display = 'block';
+                input.required = true;
+                input.focus();
+            } else {
+                input.style.display = 'none';
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        // Formatear puntos de miles mientras escribes
+        function formatearMonto(input) {
+            let valor = input.value.replace(/\D/g, '');
+            if (valor !== '') {
+                valor = Number(valor).toLocaleString('es-CO');
+            }
+            input.value = valor;
+        }
+
+        // Cargar y limpiar movimientos de más de 24 horas en la pantalla
+        function cargarMovimientosLocales() {
+            const ul = document.getElementById('listaMovimientos');
+            let movimientos = JSON.parse(localStorage.getItem('historial_24h')) || [];
             
+            const ahora = new Date().getTime();
+            // Filtrar solo los de menos de 24 horas (24 * 60 * 60 * 1000 ms)
+            movimientos = movimientos.filter(m => (ahora - m.tiempo) < 86400000);
+            localStorage.setItem('historial_24h', JSON.stringify(movimientos));
+
+            if (movimientos.length === 0) {
+                ul.innerHTML = '<p style="text-align: center; color: #888; font-size: 14px;">No hay movimientos recientes.</p>';
+                return;
+            }
+
+            ul.innerHTML = '';
+            movimientos.forEach(m => {
+                ul.innerHTML += `<li>
+                    <span><b>${m.categoria}</b> (${m.fuente})<br><small>${m.fechaStr}</small></span>
+                    <span class="${m.tipo}">${m.tipo === 'Ingreso' ? '+' : '-'}$ ${m.montoFormateado}</span>
+                </li>`;
+            });
+        }
+
+        document.getElementById('gastoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            let catSeleccionada = document.getElementById('categoriaSelect').value;
+            if (catSeleccionada === 'ADD_NEW') {
+                catSeleccionada = document.getElementById('nuevaCategoriaInput').value.trim();
+                if (catSeleccionada && !categorias.includes(catSeleccionada)) {
+                    categorias.push(catSeleccionada);
+                    localStorage.setItem('mis_categorias', JSON.stringify(categorias));
+                }
+            }
+
+            let fuenteSeleccionada = document.getElementById('fuenteSelect').value;
+            if (fuenteSeleccionada === 'ADD_NEW') {
+                fuenteSeleccionada = document.getElementById('nuevaFuenteInput').value.trim();
+                if (fuenteSeleccionada && !fuentes.includes(fuenteSeleccionada)) {
+                    fuentes.push(fuenteSeleccionada);
+                    localStorage.setItem('mis_fuentes', JSON.stringify(fuentes));
+                }
+            }
+
+            const montoRaw = document.getElementById('monto').value.replace(/\./g, '').replace(/,/g, '');
+            const montoNum = parseFloat(montoRaw);
+            const tipoVal = document.getElementById('tipo').value;
+
+            const btnEnviar = document.getElementById('btnEnviar');
+            const mensaje = document.getElementById('mensaje');
+
             btnEnviar.disabled = true;
             btnEnviar.textContent = "Guardando...";
             mensaje.style.color = "blue";
-            mensaje.textContent = "Sincronizando con la nube...";
+            mensaje.textContent = "Sincronizando...";
 
+            const ahora = new Date();
             const datos = {
-                fecha: new Date().toISOString(),
-                tipo: document.getElementById('tipo').value,
-                categoria: document.getElementById('categoria').value,
-                monto: parseFloat(document.getElementById('monto').value),
-                fuente: document.getElementById('fuente').value
+                fecha: ahora.toISOString(),
+                tipo: tipoVal,
+                categoria: catSeleccionada,
+                monto: montoNum,
+                fuente: fuenteSeleccionada
             };
 
             try {
-                const response = await fetch(WEB_APP_URL, {
+                await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Necesario para evitar bloqueos de CORS con Google Apps Script
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(datos)
                 });
 
+                // Guardar en el historial local de 24h para la pantalla
+                let movimientos = JSON.parse(localStorage.getItem('historial_24h')) || [];
+                movimientos.unshift({
+                    tipo: tipoVal,
+                    categoria: catSeleccionada,
+                    fuente: fuenteSeleccionada,
+                    montoFormateado: document.getElementById('monto').value,
+                    tiempo: ahora.getTime(),
+                    fechaStr: ahora.toLocaleDateString() + ' ' + ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                });
+                localStorage.setItem('historial_24h', JSON.stringify(movimientos));
+
                 mensaje.style.color = "green";
                 mensaje.textContent = "¡Registrado con éxito!";
-                form.reset();
+                this.reset();
+                inicializarSelects();
+                cargarMovimientosLocales();
             } catch (error) {
                 console.error("Error:", error);
                 mensaje.style.color = "red";
-                mensaje.textContent = "Hubo un error al guardar.";
+                mensaje.textContent = "Error al guardar.";
             } finally {
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = "Guardar y Sincronizar";
                 setTimeout(() => { mensaje.textContent = ""; }, 4000);
             }
         });
+
+        // Inicializar al cargar la página
+        inicializarSelects();
+        cargarMovimientosLocales();
     </script>
 </body>
 </html>
